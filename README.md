@@ -1,29 +1,20 @@
 # DGS-- Arquivo: vehicle_speed.lua
 
-local screenW, screenH = guiGetScreenSize()
-local showingSpeed = true
+-- Interface Roblox 100% compatível com celular (Touch) -- Substitui a UILibrary por uma UI simples com suporte a clique e toque
 
--- Função que converte m/s para km/h
-local function getVehicleSpeed(vehicle)
-    if not isElement(vehicle) or not getElementType(vehicle) == "vehicle" then return 0 end
-    local vx, vy, vz = getElementVelocity(vehicle)
-    local speed = math.sqrt(vx^2 + vy^2 + vz^2) * 180 -- Conversão para km/h aproximada
-    return math.floor(speed)
+local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer local PlayerGui = LocalPlayer:WaitForChild("PlayerGui") local Workspace = game:GetService("Workspace") local SessionVehicles = Workspace:WaitForChild("SessionVehicles")
+
+-- UI Setup local screenGui = Instance.new("ScreenGui") screenGui.Name = "MobileTuningUI" screenGui.ResetOnSpawn = false screenGui.Parent = PlayerGui
+
+local function createButton(text, pos, callback) local button = Instance.new("TextButton") button.Size = UDim2.new(0, 200, 0, 50) button.Position = pos button.BackgroundColor3 = Color3.fromRGB(0, 0, 0) button.TextColor3 = Color3.fromRGB(255, 255, 255) button.Font = Enum.Font.SourceSansBold button.TextSize = 20 button.Text = text button.Parent = screenGui
+
+button.MouseButton1Click:Connect(callback)
+return button
+
 end
 
--- Renderização do velocímetro simples
-addEventHandler("onClientRender", root, function()
-    if showingSpeed then
-        local vehicle = getPedOccupiedVehicle(localPlayer)
-        if vehicle and getVehicleController(vehicle) == localPlayer then
-            local speed = getVehicleSpeed(vehicle)
-            dxDrawText("Velocidade: " .. speed .. " km/h", screenW - 250, screenH - 100, screenW, screenH, tocolor(255, 255, 255, 200), 1.2, "default-bold", "left", "top")
-        end
-    end
-end)
+-- Ações de Tuning local function applyTuning() local car = SessionVehicles:FindFirstChild(LocalPlayer.Name.."-Car") if car then local tune = require(car:FindFirstChild("A-Chassis Tune")) tune.Horsepower = 1200 tune.E_Horsepower = 1200 tune.FinalDrive = 2.5 tune.Ratios = {3.7, 0, 2.84, 1.55, 1, 0.65} tune.ClutchTol = 10000 tune.Redline = 10000 tune.TurboEnabled = true tune.Turbochargers = 4 tune.Superchargers = 2 tune.Weight = 3 print("Tuning aplicado") else warn("Carro não encontrado") end end
 
--- Comando para ativar/desativar HUD de velocidade
-addCommandHandler("velocimetro", function()
-    showingSpeed = not showingSpeed
-    outputChatBox("Velocímetro " .. (showingSpeed and "ativado" or "desativado") .. ".", 255, 255, 0)
-end)
+local function applyBrakes() local car = SessionVehicles:FindFirstChild(LocalPlayer.Name.."-Car") if car then local tune = require(car:FindFirstChild("A-Chassis Tune")) tune.BrakeForce = 1e12 tune.PBrakeForce = 1e12 print("Freios aplicados") else warn("Carro não encontrado") end end
+
+-- Botões createButton("Aplicar Tuning", UDim2.new(0, 20, 0, 100), applyTuning) createButton("Freios Fortes", UDim2.new(0, 20, 0, 160), applyBrakes)
